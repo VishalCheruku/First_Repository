@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Weather App</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <style>
+    body { font-family: Arial, sans-serif; text-align: center; }
+
+    .chartBox {
+      width: 500px;
+      height: 300px;
+      margin: 20px auto;
+    }
+  </style>
+</head>
+<body>
+
+<h2>Weather App</h2>
+
+<input id="city" placeholder="Enter city name">
+<button onclick="getWeather()">Get Weather</button>
+
+<div id="current"></div>
+
+<div class="chartBox">
+  <canvas id="barChart"></canvas>
+</div>
+
+<div class="chartBox">
+  <canvas id="lineChart"></canvas>
+</div>
+
+<script>
+let barChart, lineChart;
+
+async function getWeather() {
+  try {
+    const city = document.getElementById("city").value;
+    const apiKey = "7618cacbb88811cdc959cae518d808af";
+
+    const currentURL = `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${apiKey}&units=metric`;
+    const forecastURL = `https://api.openweathermap.org/data/2.5/forecast?q=${city}&appid=${apiKey}&units=metric`;
+
+    const currentRes = await fetch(currentURL);
+    if (!currentRes.ok) throw new Error("Invalid city");
+    const currentData = await currentRes.json();
+    showCurrentWeather(currentData);
+
+    const forecastRes = await fetch(forecastURL);
+    const forecastData = await forecastRes.json();
+    processForecast(forecastData);
+  }
+  catch {
+    alert("City not found");
+  }
+}
+
+function showCurrentWeather(data) {
+  document.getElementById("current").innerHTML = `
+    <h3>${data.name}</h3>
+    <p>Temperature: ${data.main.temp} °C</p>
+    <p>Weather: ${data.weather[0].main}</p>
+    <p>Humidity: ${data.main.humidity}%</p>
+    <p>Wind Speed: ${data.wind.speed} m/s</p>
+  `;
+}
+
+function processForecast(data) {
+  let labels = [];
+  let temps = [];
+
+  for (let i = 0; i < data.list.length && i < 40; i += 8) {
+    labels.push(data.list[i].dt_txt.split(" ")[0]);
+    temps.push(data.list[i].main.temp);
+  }
+
+  drawBarChart(labels, temps);
+  drawLineChart(labels, temps);
+}
+
+function drawBarChart(labels, temps) {
+  if (barChart) barChart.destroy();
+
+  barChart = new Chart(document.getElementById("barChart"), {
+    type: "bar",
+    data: {
+      labels: labels,
+      datasets: [{
+        label: "5 Day Temperature (°C)",
+        data: temps,
+        borderWidth: 1
+      }]
+    },
+    options: { responsive: true, maintainAspectRatio: false }
+  });
+}
+
+function drawLineChart(labels, temps) {
+  if (lineChart) lineChart.destroy();
+
+  lineChart = new Chart(document.getElementById("lineChart"), {
+    type: "line",
+    data: {
+      labels: labels,
+      datasets: [{
+        label: "5 Day Temperature (°C)",
+        data: temps,
+        borderWidth: 2,
+        fill: false
+      }]
+    },
+    options: { responsive: true, maintainAspectRatio: false }
+  });
+}
+</script>
+
+</body>
+</html>

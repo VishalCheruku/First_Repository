@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Weather</title>
+  <style>
+  body {
+    font-family: Arial, sans-serif;
+    text-align: center;
+    background: #fff;
+    color: #000;
+  }
+
+  .box {
+    width: 300px;
+    margin: 60px auto;
+    padding: 20px;
+    border: 1px solid #000;
+  }
+
+  input {
+    width: 90%;
+    padding: 6px;
+    margin-bottom: 10px;
+    border: 1px solid #000;
+  }
+
+  button {
+    padding: 6px 12px;
+    border: 1px solid #000;
+    background: #fff;
+    cursor: pointer;
+  }
+
+  #result p {
+    margin: 4px 0;
+  }
+
+  .err {
+    color: #000;
+  }
+</style>
+
+</head>
+<body>
+
+<div class="box">
+  <h2>Weather App</h2>
+  <input id="city" placeholder="Enter city name">
+  <button onclick="getWeather()">Get Weather</button>
+
+  <div id="result"></div>
+</div>
+
+<script>
+const API_KEY = "7618cacbb88811cdc959cae518d808af";
+
+async function getWeather() {
+  const city = document.getElementById("city").value.trim();
+  const result = document.getElementById("result");
+
+  if (!city) {
+    result.innerHTML = "<p class='err'>Enter a city name.</p>";
+    return;
+  }
+
+  try {
+    const res = await fetch(
+      `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${API_KEY}&units=metric`
+    );
+
+    if (!res.ok) throw new Error("City not found");
+
+    const data = await res.json();
+
+    result.innerHTML = `
+      <h3>${data.name}</h3>
+      <p>Temperature: ${data.main.temp} °C</p>
+      <p>Condition: ${data.weather[0].main}</p>
+      <p>Humidity: ${data.main.humidity}%</p>
+      <p>Wind: ${data.wind.speed} m/s</p>
+    `;
+  } catch (err) {
+    result.innerHTML = "<p class='err'>Invalid city name.</p>";
+  }
+}
+</script>
+
+</body>
+</html>
